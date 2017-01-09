@@ -15,12 +15,12 @@ use AsyncInterop\Loop\UnsupportedFeatureException;
 final class Loop
 {
     /**
-     * @var DriverFactory
+     * @var DriverFactory|null
      */
     private static $factory = null;
 
     /**
-     * @var Driver
+     * @var Driver|null
      */
     private static $driver = null;
 
@@ -30,13 +30,16 @@ final class Loop
     private static $level = 0;
 
     /**
+     * @var Driver|null
+     */
+    private static $previousDriver = null;
+
+    /**
      * Set the factory to be used to create a default drivers.
      *
-     * Setting a factory is only allowed as long as no loop is currently running. Passing null will reset the
-     * default driver and remove the factory.
+     * Setting a factory is only allowed as long as no loop is currently running. Passing `null` will reset the factory.
      *
-     * The factory will be invoked if none is passed to `Loop::execute`. A default driver will be created to
-     * support synchronous waits in traditional applications.
+     * The factory will be invoked if `null` is passed to `Loop::execute`.
      *
      * @param DriverFactory|null $factory New factory to replace the previous one.
      */
@@ -47,9 +50,6 @@ final class Loop
         }
 
         self::$factory = $factory;
-
-        // reset it here, it will be actually instantiated inside execute() or get()
-        self::$driver = null;
     }
 
     /**
@@ -77,6 +77,7 @@ final class Loop
             self::$driver->defer($callback);
             self::$driver->run();
         } finally {
+            self::$previousDriver = self::$driver;
             self::$driver = $previousDriver;
             self::$level--;
         }
@@ -108,15 +109,21 @@ final class Loop
     /**
      * Retrieve the event loop driver that is in scope.
      *
-     * @return Driver
+     * @return Driver|null The currently running `Driver` or `null` otherwise.
      */
-    public static function get()
+    public static function getDriver()
     {
-        if (self::$driver) {
-            return self::$driver;
-        }
+        return self::$driver;
+    }
 
-        return self::$driver = self::createDriver();
+    /**
+     * Retrieve the previously running event loop driver, `null` otherwise.
+     *
+     * @return Driver|null The previously running `Driver`, otherwise `null`.
+     */
+    public static function getPreviousDriver()
+    {
+        return self::$previousDriver;
     }
 
     /**
@@ -129,8 +136,8 @@ final class Loop
      */
     public static function stop()
     {
-        $driver = self::$driver ?: self::get();
-        $driver->stop();
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->stop();
     }
 
     /**
@@ -147,8 +154,8 @@ final class Loop
      */
     public static function defer(callable $callback, $data = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->defer($callback, $data);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->defer($callback, $data);
     }
 
     /**
@@ -164,10 +171,10 @@ final class Loop
      *
      * @return string An unique identifier that can be used to cancel, enable or disable the watcher.
      */
-    public static function delay($time, callable $callback, $data = null)
+    public static function delay($delay, callable $callback, $data = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->delay($time, $callback, $data);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->delay($delay, $callback, $data);
     }
 
     /**
@@ -185,8 +192,8 @@ final class Loop
      */
     public static function repeat($interval, callable $callback, $data = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->repeat($interval, $callback, $data);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->repeat($interval, $callback, $data);
     }
 
     /**
@@ -207,8 +214,8 @@ final class Loop
      */
     public static function onReadable($stream, callable $callback, $data = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->onReadable($stream, $callback, $data);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->onReadable($stream, $callback, $data);
     }
 
     /**
@@ -229,8 +236,8 @@ final class Loop
      */
     public static function onWritable($stream, callable $callback, $data = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->onWritable($stream, $callback, $data);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->onWritable($stream, $callback, $data);
     }
 
     /**
@@ -252,8 +259,8 @@ final class Loop
      */
     public static function onSignal($signo, callable $callback, $data = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->onSignal($signo, $callback, $data);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->onSignal($signo, $callback, $data);
     }
 
     /**
@@ -271,8 +278,8 @@ final class Loop
      */
     public static function enable($watcherId)
     {
-        $driver = self::$driver ?: self::get();
-        $driver->enable($watcherId);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->enable($watcherId);
     }
 
     /**
@@ -287,8 +294,8 @@ final class Loop
      */
     public static function disable($watcherId)
     {
-        $driver = self::$driver ?: self::get();
-        $driver->disable($watcherId);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->disable($watcherId);
     }
 
     /**
@@ -303,8 +310,8 @@ final class Loop
      */
     public static function cancel($watcherId)
     {
-        $driver = self::$driver ?: self::get();
-        $driver->cancel($watcherId);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->cancel($watcherId);
     }
 
     /**
@@ -321,8 +328,8 @@ final class Loop
      */
     public static function reference($watcherId)
     {
-        $driver = self::$driver ?: self::get();
-        $driver->reference($watcherId);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->reference($watcherId);
     }
 
     /**
@@ -339,8 +346,8 @@ final class Loop
      */
     public static function unreference($watcherId)
     {
-        $driver = self::$driver ?: self::get();
-        $driver->unreference($watcherId);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->unreference($watcherId);
     }
 
     /**
@@ -356,8 +363,8 @@ final class Loop
      */
     public static function setState($key, $value)
     {
-        $driver = self::$driver ?: self::get();
-        $driver->setState($key, $value);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        self::$driver->setState($key, $value);
     }
 
     /**
@@ -372,8 +379,8 @@ final class Loop
      */
     public static function getState($key)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->getState($key);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->getState($key);
     }
 
     /**
@@ -392,8 +399,8 @@ final class Loop
      */
     public static function setErrorHandler(callable $callback = null)
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->setErrorHandler($callback);
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->setErrorHandler($callback);
     }
 
     /**
@@ -418,8 +425,8 @@ final class Loop
      */
     public static function getInfo()
     {
-        $driver = self::$driver ?: self::get();
-        return $driver->getInfo();
+        \assert(self::$driver !== null, "The Loop accessor may only be used inside a Loop::execute scope.");
+        return self::$driver->getInfo();
     }
 
     /**

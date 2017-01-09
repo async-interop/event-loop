@@ -34,13 +34,13 @@ class LoopTest extends \PHPUnit_Framework_TestCase
         $driver2 = new DummyDriver;
 
         Loop::execute(function () use ($driver1, $driver2) {
-            $this->assertSame($driver1, Loop::get());
+            $this->assertSame($driver1, Loop::getDriver());
 
             Loop::execute(function () use ($driver2) {
-                $this->assertSame($driver2, Loop::get());
+                $this->assertSame($driver2, Loop::getDriver());
             }, $driver2);
 
-            $this->assertSame($driver1, Loop::get());
+            $this->assertSame($driver1, Loop::getDriver());
         }, $driver1);
     }
 }

@@ -6,7 +6,7 @@ use AsyncInterop\Loop\Driver;
 
 class DummyDriver extends Driver
 {
-    public $defers;
+    public $defers = [];
     public $handler;
     public static $id = "a";
 
