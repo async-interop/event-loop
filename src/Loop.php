@@ -43,7 +43,7 @@ final class Loop
     public static function setFactory(DriverFactory $factory = null)
     {
         if (self::$level > 0) {
-            throw new \RuntimeException("Setting a new factory while running isn't allowed!");
+            throw new \RuntimeException("Setting a new factory while running isn't allowed.");
         }
 
         self::$factory = $factory;
@@ -78,6 +78,31 @@ final class Loop
             self::$driver->run();
         } finally {
             self::$driver = $previousDriver;
+            self::$level--;
+        }
+    }
+
+    /**
+     * Run an unscoped loop.
+     *
+     * When possible, execute() SHOULD be preferred over run() for more explicit scoping.
+     *
+     * @return void
+     *
+     * @see \AsyncInterop\Loop::run()
+     */
+    public static function run()
+    {
+        if (self::$level > 0) {
+            throw new \RuntimeException("The loop can only be run while not yet running.");
+        }
+
+        $driver = self::$driver ?: self::get();
+        self::$level++;
+
+        try {
+            $driver->run();
+        } finally {
             self::$level--;
         }
     }
@@ -430,3 +455,10 @@ final class Loop
         // intentionally left blank
     }
 }
+
+// Reset the $level in order to be able to use ::run() inside a shutdown handler
+$f = function()
+{
+    self::$level = 0;
+};
+register_shutdown_function($f->bindTo(null, Loop::class));
