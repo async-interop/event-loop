@@ -89,14 +89,10 @@ final class Loop
      *
      * @return void
      *
-     * @see \AsyncInterop\Loop::run()
+     * @see \AsyncInterop\Loop\Driver::run()
      */
     public static function run()
     {
-        if (self::$level > 0) {
-            throw new \RuntimeException("The loop can only be run while not yet running.");
-        }
-
         $driver = self::$driver ?: self::get();
         self::$level++;
 
@@ -455,10 +451,3 @@ final class Loop
         // intentionally left blank
     }
 }
-
-// Reset the $level in order to be able to use ::run() inside a shutdown handler
-$f = function()
-{
-    self::$level = 0;
-};
-register_shutdown_function($f->bindTo(null, Loop::class));
