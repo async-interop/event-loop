@@ -38,18 +38,15 @@ final class Loop
      * The factory will be invoked if none is passed to `Loop::execute`. A default driver will be created to
      * support synchronous waits in traditional applications.
      *
-     * @param DriverFactory|null $factory New factory to replace the previous one.
+     * @param DriverFactory $factory New factory to replace the previous one.
      */
-    public static function setFactory(DriverFactory $factory = null)
+    public static function setFactory(DriverFactory $factory)
     {
         if (self::$level > 0) {
             throw new \RuntimeException("Setting a new factory while running isn't allowed!");
         }
 
         self::$factory = $factory;
-
-        // reset it here, it will be actually instantiated inside execute() or get()
-        self::$driver = null;
     }
 
     /**
@@ -103,6 +100,21 @@ final class Loop
         }
 
         return $driver;
+    }
+
+    /**
+     * Resets the driver (sets the internal driver instance to null), forcing the creation of a new driver instance.
+     * This method can only be called if the loop is not running.
+     *
+     * @throws \RuntimeException If the loop is running.
+     */
+    public static function resetDriver()
+    {
+        if (self::$level > 0) {
+            throw new \RuntimeException("Resetting the driver while running isn't allowed!");
+        }
+
+        self::$driver = null;
     }
 
     /**

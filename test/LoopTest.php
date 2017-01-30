@@ -6,10 +6,6 @@ use AsyncInterop\Loop;
 
 class LoopTest extends \PHPUnit_Framework_TestCase
 {
-    protected function setUp() {
-        Loop::setFactory(null);
-    }
-
     /**
      * @test
      * @expectedException \RuntimeException
@@ -42,5 +38,38 @@ class LoopTest extends \PHPUnit_Framework_TestCase
 
             $this->assertSame($driver1, Loop::get());
         }, $driver1);
+    }
+
+    /** @test */
+    public function resetDriver() {
+        $factory = $this->getMockBuilder(Loop\DriverFactory::class)->getMock();
+        $factory->method("create")->willReturnCallback(function () {
+            return new DummyDriver;
+        });
+
+        Loop::setFactory($factory);
+
+        $driver1 = Loop::get();
+        Loop::resetDriver();
+        $driver2 = Loop::get();
+        $this->assertNotSame($driver1, $driver2);
+    }
+
+    /**
+     * @test
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Resetting the driver while running isn't allowed
+     */
+    public function resetDriverDuringRunning() {
+        $driver = new DummyDriver;
+
+        $factory = $this->getMockBuilder(Loop\DriverFactory::class)->getMock();
+        $factory->method("create")->willReturn($driver);
+
+        Loop::setFactory($factory);
+
+        Loop::execute(function () use ($factory) {
+            Loop::resetDriver();
+        });
     }
 }
