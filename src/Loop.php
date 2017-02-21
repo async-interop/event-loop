@@ -38,9 +38,9 @@ final class Loop
      * The factory will be invoked if none is passed to `Loop::execute`. A default driver will be created to
      * support synchronous waits in traditional applications.
      *
-     * @param DriverFactory $factory New factory to replace the previous one.
+     * @param DriverFactory|null $factory New factory to replace the previous one.
      */
-    public static function setFactory(DriverFactory $factory)
+    public static function setFactory(DriverFactory $factory = null)
     {
         if (self::$level > 0) {
             throw new \RuntimeException("Setting a new factory while running isn't allowed!");
