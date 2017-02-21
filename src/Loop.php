@@ -142,8 +142,11 @@ final class Loop
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
      * forwarded to the loop error handler.
      *
-     * The deferred callable MUST be executed in the next tick of the event loop and before any other type of watcher.
-     * Order of enabling MUST be preserved when executing the callbacks.
+     * The deferred callable MUST be executed before any other type of watcher in a tick. Order of enabling MUST be
+     * preserved when executing the callbacks.
+     *
+     * The created watcher MUST immediately be marked as enabled, but only be activated (i.e. callback can be called)
+     * right before the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
      *
      * @param callable(string $watcherId, mixed $data): void $callback The callback to defer. The `$watcherId` will be
      *     invalidated before the callback call.
@@ -165,6 +168,9 @@ final class Loop
      *
      * The delay is a minimum and approximate, accuracy is not guaranteed. Order of calls MUST be determined by which
      * timers expire first, but timers with the same expiration time MAY be executed in any order.
+     *
+     * The created watcher MUST immediately be marked as enabled, but only be activated (i.e. callback can be called)
+     * right before the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
      *
      * @param int $delay The amount of time, in milliseconds, to delay the execution for.
      * @param callable(string $watcherId, mixed $data): void $callback The callback to delay. The `$watcherId` will be
@@ -188,6 +194,9 @@ final class Loop
      * The interval between executions is a minimum and approximate, accuracy is not guaranteed. Order of calls MUST be
      * determined by which timers expire first, but timers with the same expiration time MAY be executed in any order.
      * The first execution is scheduled after the first interval period.
+     *
+     * The created watcher MUST immediately be marked as enabled, but only be activated (i.e. callback can be called)
+     * right before the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
      *
      * @param int $interval The time interval, in milliseconds, to wait between executions.
      * @param callable(string $watcherId, mixed $data): void $callback The callback to repeat.
@@ -214,6 +223,9 @@ final class Loop
      *
      * Multiple watchers on the same stream MAY be executed in any order.
      *
+     * The created watcher MUST immediately be marked as enabled, but only be activated (i.e. callback can be called)
+     * right before the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
+     *
      * @param resource $stream The stream to monitor.
      * @param callable(string $watcherId, resource $stream, mixed $data): void $callback The callback to execute.
      * @param mixed $data Arbitrary data given to the callback function as the `$data` parameter.
@@ -239,6 +251,9 @@ final class Loop
      *
      * Multiple watchers on the same stream MAY be executed in any order.
      *
+     * The created watcher MUST immediately be marked as enabled, but only be activated (i.e. callback can be called)
+     * right before the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
+     *
      * @param resource $stream The stream to monitor.
      * @param callable(string $watcherId, resource $stream, mixed $data): void $callback The callback to execute.
      * @param mixed $data Arbitrary data given to the callback function as the `$data` parameter.
@@ -263,6 +278,9 @@ final class Loop
      *
      * Multiple watchers on the same signal MAY be executed in any order.
      *
+     * The created watcher MUST immediately be marked as enabled, but only be activated (i.e. callback can be called)
+     * right before the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
+     *
      * @param int $signo The signal number to monitor.
      * @param callable(string $watcherId, int $signo, mixed $data): void $callback The callback to execute.
      * @param mixed $data Arbitrary data given to the callback function as the $data parameter.
@@ -278,11 +296,10 @@ final class Loop
     }
 
     /**
-     * Enable a watcher.
+     * Enable a watcher to be active starting in the next tick.
      *
-     * Watchers (enabling or new watchers) MUST immediately be marked as enabled, but only be activated (i.e. callbacks
-     * can be called) right before the next tick. Callbacks of watchers MUST not be called in the tick they were
-     * enabled.
+     * Watchers MUST immediately be marked as enabled, but only be activated (i.e. callbacks can be called) right before
+     * the next tick. Callbacks of watchers MUST NOT be called in the tick they were enabled.
      *
      * @param string $watcherId The watcher identifier.
      *
@@ -297,7 +314,10 @@ final class Loop
     }
 
     /**
-     * Disable a watcher.
+     * Disable a watcher immediately.
+     *
+     * A watcher MUST be disabled immediately, e.g. if a defer watcher disables a later defer watcher, the second defer
+     * watcher isn't executed in this tick.
      *
      * Disabling a watcher MUST NOT invalidate the watcher. Calling this function MUST NOT fail, even if passed an
      * invalid watcher.
