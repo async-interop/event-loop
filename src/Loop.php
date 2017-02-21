@@ -56,7 +56,7 @@ final class Loop
      * Execute a callback within the scope of an event loop driver.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * The loop MUST continue to run until it is either stopped explicitly, no referenced watchers exist anymore, or an
      * exception is thrown that cannot be handled. Exceptions that cannot be handled are exceptions thrown from an
@@ -140,7 +140,7 @@ final class Loop
      * Defer the execution of a callback.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * The deferred callable MUST be executed before any other type of watcher in a tick. Order of enabling MUST be
      * preserved when executing the callbacks.
@@ -164,7 +164,7 @@ final class Loop
      * Delay the execution of a callback.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * The delay is a minimum and approximate, accuracy is not guaranteed. Order of calls MUST be determined by which
      * timers expire first, but timers with the same expiration time MAY be executed in any order.
@@ -189,7 +189,7 @@ final class Loop
      * Repeatedly execute a callback.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * The interval between executions is a minimum and approximate, accuracy is not guaranteed. Order of calls MUST be
      * determined by which timers expire first, but timers with the same expiration time MAY be executed in any order.
@@ -214,7 +214,7 @@ final class Loop
      * Execute a callback when a stream resource becomes readable or is closed for reading.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * Warning: Closing resources locally, e.g. with `fclose`, might not invoke the callback. Be sure to `cancel` the
      * watcher when closing the resource locally. Drivers MAY choose to notify the user if there are watchers on invalid
@@ -242,7 +242,7 @@ final class Loop
      * Execute a callback when a stream resource becomes writable or is closed for writing.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * Warning: Closing resources locally, e.g. with `fclose`, might not invoke the callback. Be sure to `cancel` the
      * watcher when closing the resource locally. Drivers MAY choose to notify the user if there are watchers on invalid
@@ -270,7 +270,7 @@ final class Loop
      * Execute a callback when a signal is received.
      *
      * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
-     * forwarded to the loop error handler.
+     * forwarded to the loop error handler or thrown if none exists.
      *
      * Warning: Installing the same signal on different instances of this interface is deemed undefined behavior.
      * Implementations MAY try to detect this, if possible, but are not required to. This is due to technical
