@@ -47,7 +47,7 @@ abstract class Driver
     /**
      * Defer the execution of a callback.
      *
-     * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
+     * If the callback is not a void function (does not return null), an implementation-specific exception MUST be
      * forwarded to the loop error handler or thrown if none exists.
      *
      * The deferred callable MUST be executed before any other type of watcher in a tick. Order of enabling MUST be
@@ -67,7 +67,7 @@ abstract class Driver
     /**
      * Delay the execution of a callback.
      *
-     * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
+     * If the callback is not a void function (does not return null), an implementation-specific exception MUST be
      * forwarded to the loop error handler or thrown if none exists.
      *
      * The delay is a minimum and approximate, accuracy is not guaranteed. Order of calls MUST be determined by which
@@ -88,7 +88,7 @@ abstract class Driver
     /**
      * Repeatedly execute a callback.
      *
-     * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
+     * If the callback is not a void function (does not return null), an implementation-specific exception MUST be
      * forwarded to the loop error handler or thrown if none exists.
      *
      * The interval between executions is a minimum and approximate, accuracy is not guaranteed. Order of calls MUST be
@@ -109,7 +109,7 @@ abstract class Driver
     /**
      * Execute a callback when a stream resource becomes readable or is closed for reading.
      *
-     * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
+     * If the callback is not a void function (does not return null), an implementation-specific exception MUST be
      * forwarded to the loop error handler or thrown if none exists.
      *
      * Warning: Closing resources locally, e.g. with `fclose`, might not invoke the callback. Be sure to `cancel` the
@@ -133,7 +133,7 @@ abstract class Driver
     /**
      * Execute a callback when a stream resource becomes writable or is closed for writing.
      *
-     * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
+     * If the callback is not a void function (does not return null), an implementation-specific exception MUST be
      * forwarded to the loop error handler or thrown if none exists.
      *
      * Warning: Closing resources locally, e.g. with `fclose`, might not invoke the callback. Be sure to `cancel` the
@@ -157,7 +157,7 @@ abstract class Driver
     /**
      * Execute a callback when a signal is received.
      *
-     * If the callback is not a void function (does not return null), an implementation-specific exception SHOULD be
+     * If the callback is not a void function (does not return null), an implementation-specific exception MUST be
      * forwarded to the loop error handler or thrown if none exists.
      *
      * Warning: Installing the same signal on different instances of this interface is deemed undefined behavior.
