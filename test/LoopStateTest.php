@@ -4,6 +4,7 @@ namespace AsyncInterop\Loop;
 
 class LoopStateTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var Driver */
     private $loop;
 
     protected function setUp()

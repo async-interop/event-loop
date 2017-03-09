@@ -3,7 +3,6 @@
 namespace AsyncInterop;
 
 use AsyncInterop\Loop\Driver;
-use AsyncInterop\Loop\DriverFactory;
 use AsyncInterop\Loop\InvalidWatcherException;
 use AsyncInterop\Loop\UnsupportedFeatureException;
 
@@ -15,41 +14,18 @@ use AsyncInterop\Loop\UnsupportedFeatureException;
 final class Loop
 {
     /**
-     * @var DriverFactory
-     */
-    private static $factory = null;
-
-    /**
      * @var Driver
      */
     private static $driver = null;
 
     /**
-     * @var int
+     * Sets the driver to be used.
+     *
+     * @param Driver $driver New driver to replace the previous one if one exists.
      */
-    private static $level = 0;
-
-    /**
-     * Set the factory to be used to create a default drivers.
-     *
-     * Setting a factory is only allowed as long as no loop is currently running. Passing null will reset the
-     * default driver and remove the factory.
-     *
-     * The factory will be invoked if none is passed to `Loop::execute`. A default driver will be created to
-     * support synchronous waits in traditional applications.
-     *
-     * @param DriverFactory|null $factory New factory to replace the previous one.
-     */
-    public static function setFactory(DriverFactory $factory = null)
+    public static function set(Driver $driver)
     {
-        if (self::$level > 0) {
-            throw new \RuntimeException("Setting a new factory while running isn't allowed!");
-        }
-
-        self::$factory = $factory;
-
-        // reset it here, it will be actually instantiated inside execute() or get()
-        self::$driver = null;
+        self::$driver = $driver;
     }
 
     /**
@@ -59,50 +35,14 @@ final class Loop
      * exception is thrown that cannot be handled. Exceptions that cannot be handled are exceptions thrown from an
      * error handler or exceptions that would be passed to an error handler but none exists to handle them.
      *
-     * @param callable $callback The callback to execute.
-     * @param Driver $driver The event loop driver. If `null`, a new one is created from the set factory.
-     *
      * @return void
      *
      * @see \AsyncInterop\Loop::setFactory()
      */
-    public static function execute(callable $callback, Driver $driver = null)
+    public static function run()
     {
-        $previousDriver = self::$driver;
-
-        self::$driver = $driver ?: self::createDriver();
-        self::$level++;
-
-        try {
-            self::$driver->defer($callback);
-            self::$driver->run();
-        } finally {
-            self::$driver = $previousDriver;
-            self::$level--;
-        }
-    }
-
-    /**
-     * Create a new driver if a factory is present, otherwise throw.
-     *
-     * @return Driver
-     *
-     * @throws \Exception If no factory is set or no driver returned from factory.
-     */
-    private static function createDriver()
-    {
-        if (self::$factory === null) {
-            throw new \Exception("No loop driver factory set; Either pass a driver to Loop::execute or set a factory.");
-        }
-
-        $driver = self::$factory->create();
-
-        if (!$driver instanceof Driver) {
-            $type = is_object($driver) ? "an instance of " . get_class($driver) : gettype($driver);
-            throw new \Exception("Loop driver factory returned {$type}, but must return an instance of Driver.");
-        }
-
-        return $driver;
+        $driver = self::$driver ?: self::get();
+        $driver->run();
     }
 
     /**
@@ -112,11 +52,7 @@ final class Loop
      */
     public static function get()
     {
-        if (self::$driver) {
-            return self::$driver;
-        }
-
-        return self::$driver = self::createDriver();
+        return self::$driver;
     }
 
     /**
@@ -170,10 +106,10 @@ final class Loop
      *
      * @return string An unique identifier that can be used to cancel, enable or disable the watcher.
      */
-    public static function delay($time, callable $callback, $data = null)
+    public static function delay($delay, callable $callback, $data = null)
     {
         $driver = self::$driver ?: self::get();
-        return $driver->delay($time, $callback, $data);
+        return $driver->delay($delay, $callback, $data);
     }
 
     /**
