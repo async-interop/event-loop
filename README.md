@@ -5,6 +5,10 @@ event loop implementations. This allows libraries and components from
 different vendors to operate in an event driven architecture, sharing a
 common event loop.
 
+## Current Status
+
+This project is currently on hold and to be seen as failed for now. It might be reconsidered at a later point in time. The specification in its current state has been merged into [Amp](https://github.com/amphp/amp). Interoperability between [ReactPHP](https://github.com/reactphp/event-loop) and Amp will be solved via adapters instead of a common interface. [Icicle](https://github.com/icicleio/icicle) has been deprecated and parts of it been merged into Amp libraries.
+
 ## Why Bother?
 
 Some programming languages, such as Javascript, have an event loop that is
